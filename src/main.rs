@@ -13,7 +13,7 @@ fn main() {
         println!("All systems are go.");
 
         let mut derp = String::new();
-        io::stdin().read_line(&mut derp);
+        io::stdin().read_line(&mut derp).ok();
     }
 
     println!("Dropped successfully.");

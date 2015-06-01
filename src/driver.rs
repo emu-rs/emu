@@ -76,6 +76,9 @@ impl Driver {
                 DriverError::AudioUnitSetPropertyFailed);
 
             // TODO: Set callback
+            // https://github.com/yupferris/FerrisLibs/blob/master/Fel/src/Win32DirectSoundAudioDriver.cpp
+            // https://github.com/RustAudio/coreaudio-rs/blob/master/src/audio_unit/mod.rs
+            // http://stackoverflow.com/questions/26577070/how-to-use-fn-traits-closures-in-signatures-in-rust
 
             check_os_error!(
                 au::AudioOutputUnitStart(instance),
