@@ -4,4 +4,5 @@ version = "0.1.0"
 authors = ["ferris <jake@fusetools.com>"]
 
 [dependencies]
-coreaudio-sys = "0.0.2"
+coreaudio-sys = "*"
+libc = "*"
