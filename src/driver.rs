@@ -16,8 +16,7 @@ pub enum DriverError {
 }
 
 pub struct Driver {
-    instance: au::AudioComponentInstance,
-    sample_rate: i32
+    instance: au::AudioComponentInstance
 }
 
 macro_rules! check_os_error {
@@ -54,8 +53,7 @@ impl Driver {
                 DriverError::AudioComponentInstanceInitializationFailed);
 
             Ok(Driver {
-                instance: instance,
-                sample_rate: 44100
+                instance: instance
             })
         }
     }
