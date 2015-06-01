@@ -1,5 +1,6 @@
 mod driver;
 
+use std::io;
 use driver::Driver;
 
 fn main() {
@@ -8,7 +9,12 @@ fn main() {
             Ok(x) => x,
             Err(e) => panic!("{:?}", e)
         };
+
         println!("All systems are go.");
+
+        let mut derp = String::new();
+        io::stdin().read_line(&mut derp);
     }
+
     println!("Dropped successfully.");
 }
