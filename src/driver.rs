@@ -3,6 +3,7 @@ extern crate libc;
 
 use std::ptr;
 use std::mem;
+use std::slice;
 use self::bindings::audio_unit as au;
 
 const COMPONENT_TYPE_OUTPUT: libc::c_uint = 0x61756f75;
@@ -31,7 +32,7 @@ macro_rules! check_os_error {
 }
 
 impl Driver {
-    pub fn new(some_func: Box<FnMut(&mut[f32], usize) -> Result<(), String>>) -> Result<Driver, DriverError> {
+    pub fn new(some_func: Box<FnMut(&mut[f32], usize)>) -> Result<Driver, DriverError> {
         let desc = au::AudioComponentDescription {
             componentType: COMPONENT_TYPE_OUTPUT,
             componentSubType: COMPONENT_SUB_TYPE_DEFAULT_OUTPUT,
@@ -122,24 +123,23 @@ impl Drop for Driver {
 }
 
 struct RenderCallback {
-    callback: Box<FnMut(&mut[f32], usize) -> Result<(), String>>
+    callback: Box<FnMut(&mut[f32], usize)>
 }
 
 extern "C" fn input_proc(
     in_ref_con: *mut libc::c_void,
-    _io_action_flags: *mut au::AudioUnitRenderActionFlags,
-    _in_time_stamp: *const au::AudioTimeStamp,
-    _in_bus_number: au::UInt32,
+    _: *mut au::AudioUnitRenderActionFlags,
+    _: *const au::AudioTimeStamp,
+    _: au::UInt32,
     in_number_frames: au::UInt32,
     io_data: *mut au::AudioBufferList) -> au::OSStatus {
     let callback: *mut RenderCallback = in_ref_con as *mut _;
     unsafe {
         let slice_ptr = (*io_data).mBuffers[0].mData as *mut libc::c_float;
-        let buffer = ::std::slice::from_raw_parts_mut(slice_ptr, (in_number_frames * 2) as usize);
+        let buffer = slice::from_raw_parts_mut(slice_ptr, (in_number_frames * 2) as usize);
 
-        match (*(*callback).callback)(buffer, in_number_frames as usize) {
-            Ok(()) => 0,
-            Err(description) => panic!("Audio rendering error: {}", description)
-        }
+        (*(*callback).callback)(buffer, in_number_frames as usize);
     }
+
+    0
 }

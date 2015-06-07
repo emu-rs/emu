@@ -15,8 +15,6 @@ fn main() {
             buffer[buffer_index + 1] = value;
             phase += 440.0 / 44100.0;
         }
-
-        Ok(())
     })) {
         Ok(x) => x,
         Err(e) => panic!("{:?}", e)
