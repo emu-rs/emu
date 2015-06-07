@@ -14,6 +14,7 @@ pub enum DriverError {
     AudioComponentInstanceCreationFailed,
     AudioComponentInstanceInitializationFailed,
     AudioUnitSetPropertyFailed,
+    AudioUnitSetRenderCallbackFailed,
     AudioOutputUnitStartFailed
 }
 
@@ -30,7 +31,7 @@ macro_rules! check_os_error {
 }
 
 impl Driver {
-    pub fn new() -> Result<Driver, DriverError> {
+    pub fn new(some_func: Box<FnMut(&mut[&mut[f32]], usize) -> Result<(), String>>) -> Result<Driver, DriverError> {
         let desc = au::AudioComponentDescription {
             componentType: COMPONENT_TYPE_OUTPUT,
             componentSubType: COMPONENT_SUB_TYPE_DEFAULT_OUTPUT,
@@ -75,6 +76,25 @@ impl Driver {
                     mem::size_of::<au::AudioStreamBasicDescription>() as u32),
                 DriverError::AudioUnitSetPropertyFailed);
 
+            let callback = Box::new(RenderCallback {
+                callback: some_func
+            });
+
+            let render_callback = au::AURenderCallbackStruct {
+                inputProc: Some(input_proc), // TODO
+                inputProcRefCon: mem::transmute(callback)
+            };
+
+            check_os_error!(
+                au::AudioUnitSetProperty(
+                    instance,
+                    au::kAudioUnitProperty_SetRenderCallback,
+                    au::kAudioUnitScope_Input,
+                    0,
+                    &render_callback as *const _ as *const libc::c_void,
+                    mem::size_of::<au::AURenderCallbackStruct>() as u32),
+                DriverError::AudioUnitSetRenderCallbackFailed);
+
             // TODO: Set callback
             // https://github.com/yupferris/FerrisLibs/blob/master/Fel/src/Win32DirectSoundAudioDriver.cpp
             // https://github.com/RustAudio/coreaudio-rs/blob/master/src/audio_unit/mod.rs
@@ -94,9 +114,31 @@ impl Driver {
 impl Drop for Driver {
     fn drop(&mut self) {
         unsafe {
-            // TODO: Handle errors (probably by panicking)
-            au::AudioOutputUnitStop(self.instance);
-            au::AudioComponentInstanceDispose(self.instance);
+            match au::AudioOutputUnitStop(self.instance) {
+                err if err != 0 => panic!("Failed to stop audio output unit (error code {})", err),
+                _ => {}
+            }
+            match au::AudioComponentInstanceDispose(self.instance) {
+                err if err != 0 => panic!("Failed to dispose audio component instance (error code {})", err),
+                _ => {}
+            }
         }
+    }
+}
+
+struct RenderCallback {
+    callback: Box<FnMut(&mut[&mut[f32]], usize) -> Result<(), String>>
+}
+
+extern "C" fn input_proc(
+    in_ref_con: *mut libc::c_void,
+    _io_action_flags: *mut au::AudioUnitRenderActionFlags,
+    _in_time_stamp: *const au::AudioTimeStamp,
+    _in_bus_number: au::UInt32,
+    in_number_frames: au::UInt32,
+    io_data: *mut au::AudioBufferList) -> au::OSStatus {
+    let callback: *mut RenderCallback = in_ref_con as *mut _;
+    unsafe {
+        0
     }
 }
