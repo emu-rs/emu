@@ -31,7 +31,7 @@ macro_rules! check_os_error {
 }
 
 impl Driver {
-    pub fn new(some_func: Box<FnMut(&mut[&mut[f32]], usize) -> Result<(), String>>) -> Result<Driver, DriverError> {
+    pub fn new(some_func: Box<FnMut(&mut[f32], usize) -> Result<(), String>>) -> Result<Driver, DriverError> {
         let desc = au::AudioComponentDescription {
             componentType: COMPONENT_TYPE_OUTPUT,
             componentSubType: COMPONENT_SUB_TYPE_DEFAULT_OUTPUT,
@@ -95,11 +95,6 @@ impl Driver {
                     mem::size_of::<au::AURenderCallbackStruct>() as u32),
                 DriverError::AudioUnitSetRenderCallbackFailed);
 
-            // TODO: Set callback
-            // https://github.com/yupferris/FerrisLibs/blob/master/Fel/src/Win32DirectSoundAudioDriver.cpp
-            // https://github.com/RustAudio/coreaudio-rs/blob/master/src/audio_unit/mod.rs
-            // http://stackoverflow.com/questions/26577070/how-to-use-fn-traits-closures-in-signatures-in-rust
-
             check_os_error!(
                 au::AudioOutputUnitStart(instance),
                 DriverError::AudioOutputUnitStartFailed);
@@ -127,7 +122,7 @@ impl Drop for Driver {
 }
 
 struct RenderCallback {
-    callback: Box<FnMut(&mut[&mut[f32]], usize) -> Result<(), String>>
+    callback: Box<FnMut(&mut[f32], usize) -> Result<(), String>>
 }
 
 extern "C" fn input_proc(
@@ -139,16 +134,10 @@ extern "C" fn input_proc(
     io_data: *mut au::AudioBufferList) -> au::OSStatus {
     let callback: *mut RenderCallback = in_ref_con as *mut _;
     unsafe {
-        let num_channels = (*io_data).mNumberBuffers as usize;
-        let mut channels: Vec<&mut [f32]> =
-            (0..num_channels)
-            .map(|i| {
-                let slice_ptr = (*io_data).mBuffers[i].mData as *mut libc::c_float;
-                ::std::slice::from_raw_parts_mut(slice_ptr, in_number_frames as usize)
-            })
-            .collect();
+        let slice_ptr = (*io_data).mBuffers[0].mData as *mut libc::c_float;
+        let buffer = ::std::slice::from_raw_parts_mut(slice_ptr, (in_number_frames * 2) as usize);
 
-        match (*(*callback).callback)(&mut channels[..], in_number_frames as usize) {
+        match (*(*callback).callback)(buffer, in_number_frames as usize) {
             Ok(()) => 0,
             Err(description) => panic!("Audio rendering error: {}", description)
         }
