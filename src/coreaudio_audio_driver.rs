@@ -80,6 +80,9 @@ impl CoreaudioAudioDriver {
                     mem::size_of::<au::AudioStreamBasicDescription>() as u32),
                 CoreaudioAudioDriverError::AudioUnitSetPropertyFailed);
 
+            // TODO: Contact author of coreaudio-rs about why certain types are used here.
+            // Quite frankly it's very confusing and I have worries about memleaks when using
+            // callbacks like this.
             let callback = Box::new(some_func);
 
             let render_callback = au::AURenderCallbackStruct {
