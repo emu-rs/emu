@@ -9,6 +9,6 @@ pub trait AudioDriver {
     // TODO: set_latency
     // TODO: latency
 
-    // TODO: fn set_sample_rate(&mut self, sample_rate: i32);
+    fn set_sample_rate(&mut self, sample_rate: i32);
     fn sample_rate(&self) -> i32;
 }

@@ -131,6 +131,28 @@ impl Drop for CoreaudioAudioDriver {
 }
 
 impl AudioDriver for CoreaudioAudioDriver {
+    fn set_sample_rate(&mut self, sample_rate: i32) {
+        if sample_rate == self.sample_rate {
+            return;
+        }
+
+        let sample_rate_float = sample_rate as f64;
+        unsafe {
+            if au::AudioUnitSetProperty(
+                self.instance,
+                au::kAudioUnitProperty_SampleRate,
+                au::kAudioUnitScope_Input,
+                0,
+                &sample_rate_float as *const _ as *const libc::c_void,
+                mem::size_of::<f64>() as u32) != 0 {
+                // TODO: Not sure I like panicking here
+                panic!("Failed to set sample rate");
+            }
+        }
+
+        self.sample_rate = sample_rate;
+    }
+
     fn sample_rate(&self) -> i32 {
         self.sample_rate
     }
