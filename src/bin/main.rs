@@ -1,7 +1,7 @@
-extern crate coreaudio_driver;
+extern crate emu_coreaudio_driver;
 
-use coreaudio_driver::audio_driver::{AudioDriver, RenderCallback};
-use coreaudio_driver::coreaudio_audio_driver::CoreaudioAudioDriver;
+use emu_coreaudio_driver::audio_driver::{AudioDriver, RenderCallback};
+use emu_coreaudio_driver::coreaudio_audio_driver::CoreaudioAudioDriver;
 
 use std::f64::consts::PI;
 
