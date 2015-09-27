@@ -63,7 +63,7 @@ impl CoreaudioDriver {
 
             let sample_rate = 44100;
             let mut stream_desc = au::AudioStreamBasicDescription {
-                mSampleRate: 44100 as f64,
+                mSampleRate: sample_rate as f64,
                 mFormatID: au::kAudioFormatLinearPCM,
                 mFormatFlags: au::kAudioFormatFlagIsFloat as u32,
                 mFramesPerPacket: 1,
