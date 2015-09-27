@@ -2,7 +2,7 @@
 Because bad code don't fly!
 
 ## What
-emu is a library full of infrastruture code for writing emulators in Rust. At the moment it's very much in its
+emu is set of libraries full of infrastruture code for writing emulators in Rust. At the moment it's very much in its
 infancy and highly incomplete. The first goal is to port/rewrite enough existing infrastructure from my older
 [Fel library](https://github.com/yupferris/FerrisLibs/tree/master/Fel) to support porting various emulators I've
 written to Rust (like [this one](https://github.com/yupferris/SamuraiPizzaCats) and
