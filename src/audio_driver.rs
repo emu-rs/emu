@@ -1,10 +1,10 @@
 pub type RenderCallback = FnMut(&mut[f32], usize);
 
 pub trait AudioDriver {
-    // TODO: fn set_render_callback(&mut self, callback: RenderCallback /* TODO: user_data */);
+    // TODO: fn set_render_callback(&mut self, callback: RenderCallback);
 
-    // TODO: set_enabled
-    // TODO: is_enabled
+    fn set_is_enabled(&mut self, is_enabled: bool);
+    fn is_enabled(&self) -> bool;
 
     // TODO: set_latency
     // TODO: latency

@@ -46,6 +46,23 @@ fn main() {
 
     println!("All systems are go.");
 
+    println!("Starting is enabled tests.");
+
+    println!("Driver is enabled: {}", driver.is_enabled());
+    thread::sleep_ms(1000);
+
+    driver.set_is_enabled(false);
+    println!("Driver is enabled: {}", driver.is_enabled());
+    thread::sleep_ms(1000);
+
+    driver.set_is_enabled(true);
+    println!("Driver is enabled: {}", driver.is_enabled());
+    thread::sleep_ms(1000);
+
+    println!("Is enabled tests completed.");
+
+    println!("Starting sample rate tests.");
+
     println!("Driver sample rate: {}", driver.sample_rate());
     thread::sleep_ms(1000);
 

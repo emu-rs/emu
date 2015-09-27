@@ -23,6 +23,7 @@ pub enum CoreaudioAudioDriverError {
 pub struct CoreaudioAudioDriver {
     instance: au::AudioComponentInstance,
     callback: *mut libc::c_void,
+    is_enabled: bool,
     sample_rate: i32
 }
 
@@ -104,6 +105,7 @@ impl CoreaudioAudioDriver {
             Ok(CoreaudioAudioDriver {
                 instance: instance,
                 callback: callback_ptr,
+                is_enabled: true,
                 sample_rate: sample_rate
             })
         }
@@ -129,6 +131,32 @@ impl Drop for CoreaudioAudioDriver {
 }
 
 impl AudioDriver for CoreaudioAudioDriver {
+    fn set_is_enabled(&mut self, is_enabled: bool) {
+        if is_enabled == self.is_enabled {
+            return;
+        }
+
+        unsafe {
+            if is_enabled {
+                match au::AudioOutputUnitStart(self.instance) {
+                    err if err != 0 => panic!("Failed to stop audio output unit (error code {})", err),
+                    _ => {}
+                }
+            } else {
+                match au::AudioOutputUnitStop(self.instance) {
+                    err if err != 0 => panic!("Failed to stop audio output unit (error code {})", err),
+                    _ => {}
+                }
+            }
+        }
+
+        self.is_enabled = is_enabled;
+    }
+
+    fn is_enabled(&self) -> bool {
+        self.is_enabled
+    }
+
     fn set_sample_rate(&mut self, sample_rate: i32) {
         if sample_rate == self.sample_rate {
             return;
