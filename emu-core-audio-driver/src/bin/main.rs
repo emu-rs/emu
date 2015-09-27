@@ -31,7 +31,7 @@ fn main() {
         let mut test_user_resource = TestUserResource::new(String::from("a"));
         let callback: Box<RenderCallback> = Box::new(move |buffer, num_frames| {
             for i in 0..num_frames {
-                let value = (test_user_resource.phase * 2.0 * PI).sin() as f32;
+                let value = (test_user_resource.phase * PI).sin() as f32;
                 let buffer_index = i * 2;
                 buffer[buffer_index + 0] = value;
                 buffer[buffer_index + 1] = value;
