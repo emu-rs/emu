@@ -87,7 +87,6 @@ impl CoreaudioAudioDriver {
                 inputProc: Some(render_proc),
                 inputProcRefCon: callback_ptr
             };
-
             check_os_error!(
                 au::AudioUnitSetProperty(
                     instance,
@@ -131,6 +130,29 @@ impl Drop for CoreaudioAudioDriver {
 }
 
 impl AudioDriver for CoreaudioAudioDriver {
+    fn set_render_callback(&mut self, callback: Box<RenderCallback>) {
+        unsafe {
+            let callback_ptr: *mut libc::c_void = mem::transmute(Box::new(callback));
+            let render_callback = au::AURenderCallbackStruct {
+                inputProc: Some(render_proc),
+                inputProcRefCon: callback_ptr
+            };
+            if au::AudioUnitSetProperty(
+                self.instance,
+                au::kAudioUnitProperty_SetRenderCallback,
+                au::kAudioUnitScope_Input,
+                0,
+                &render_callback as *const _ as *const libc::c_void,
+                mem::size_of::<au::AURenderCallbackStruct>() as u32) != 0 {
+                // TODO: Not sure if I like panicking here
+                panic!("Failed to set render callback");
+            }
+
+            let _: Box<Box<RenderCallback>> = mem::transmute(self.callback);
+            self.callback = callback_ptr;
+        }
+    }
+
     fn set_is_enabled(&mut self, is_enabled: bool) {
         if is_enabled == self.is_enabled {
             return;
@@ -139,11 +161,13 @@ impl AudioDriver for CoreaudioAudioDriver {
         unsafe {
             if is_enabled {
                 match au::AudioOutputUnitStart(self.instance) {
+                    // TODO: Not sure I like panicking here
                     err if err != 0 => panic!("Failed to stop audio output unit (error code {})", err),
                     _ => {}
                 }
             } else {
                 match au::AudioOutputUnitStop(self.instance) {
+                    // TODO: Not sure I like panicking here
                     err if err != 0 => panic!("Failed to stop audio output unit (error code {})", err),
                     _ => {}
                 }
