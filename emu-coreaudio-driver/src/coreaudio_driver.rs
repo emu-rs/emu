@@ -24,8 +24,7 @@ pub enum CoreaudioDriverError {
 pub struct CoreaudioDriver {
     instance: au::AudioComponentInstance,
     callback: *mut libc::c_void,
-    is_enabled: bool,
-    sample_rate: i32
+    is_enabled: bool
 }
 
 macro_rules! check_os_error {
@@ -105,8 +104,7 @@ impl CoreaudioDriver {
             Ok(CoreaudioDriver {
                 instance: instance,
                 callback: callback_ptr,
-                is_enabled: true,
-                sample_rate: sample_rate
+                is_enabled: true
             })
         }
     }
@@ -183,10 +181,6 @@ impl AudioDriver for CoreaudioDriver {
     }
 
     fn set_sample_rate(&mut self, sample_rate: i32) {
-        if sample_rate == self.sample_rate {
-            return;
-        }
-
         let sample_rate_float = sample_rate as f64;
         unsafe {
             if au::AudioUnitSetProperty(
@@ -200,12 +194,24 @@ impl AudioDriver for CoreaudioDriver {
                 panic!("Failed to set sample rate");
             }
         }
-
-        self.sample_rate = sample_rate;
     }
 
     fn sample_rate(&self) -> i32 {
-        self.sample_rate
+        unsafe {
+            let mut sample_rate_float: f64 = 0.0;
+            let mut size: u32 = mem::size_of::<f64>() as u32;
+            if au::AudioUnitGetProperty(
+                self.instance,
+                au::kAudioUnitProperty_SampleRate,
+                au::kAudioUnitScope_Input,
+                0,
+                &mut sample_rate_float as *mut _ as *mut libc::c_void,
+                &mut size as *mut _) != 0 {
+                // TODO: Not sure I like panicking here
+                panic!("Failed to get sample rate");
+            }
+            sample_rate_float as i32
+        }
     }
 }
 
