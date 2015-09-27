@@ -1,8 +1,8 @@
 extern crate emu_audio_types;
-extern crate emu_coreaudio_driver;
+extern crate emu_core_audio_driver;
 
 use emu_audio_types::audio_driver::{AudioDriver, RenderCallback};
-use emu_coreaudio_driver::coreaudio_driver::CoreaudioDriver;
+use emu_core_audio_driver::core_audio_driver::CoreAudioDriver;
 
 use std::f64::consts::PI;
 
@@ -39,7 +39,7 @@ fn main() {
             }
         });
 
-        match CoreaudioDriver::new(callback) {
+        match CoreAudioDriver::new(callback) {
             Ok(x) => x,
             Err(e) => panic!("{:?}", e)
         }

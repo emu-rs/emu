@@ -12,7 +12,7 @@ const COMPONENT_TYPE_OUTPUT: libc::c_uint = 0x61756f75;
 const COMPONENT_SUB_TYPE_DEFAULT_OUTPUT: libc::c_uint = 0x64656620;
 
 #[derive(Debug)]
-pub enum CoreaudioDriverError {
+pub enum CoreAudioDriverError {
     AudioComponentNotFound,
     AudioComponentInstanceCreationFailed,
     AudioComponentInstanceInitializationFailed,
@@ -21,7 +21,7 @@ pub enum CoreaudioDriverError {
     AudioOutputUnitStartFailed
 }
 
-pub struct CoreaudioDriver {
+pub struct CoreAudioDriver {
     instance: au::AudioComponentInstance,
     callback: *mut libc::c_void,
     is_enabled: bool
@@ -35,8 +35,8 @@ macro_rules! check_os_error {
     })
 }
 
-impl CoreaudioDriver {
-    pub fn new(callback: Box<RenderCallback>) -> Result<CoreaudioDriver, CoreaudioDriverError> {
+impl CoreAudioDriver {
+    pub fn new(callback: Box<RenderCallback>) -> Result<CoreAudioDriver, CoreAudioDriverError> {
         let desc = au::AudioComponentDescription {
             componentType: COMPONENT_TYPE_OUTPUT,
             componentSubType: COMPONENT_SUB_TYPE_DEFAULT_OUTPUT,
@@ -47,18 +47,18 @@ impl CoreaudioDriver {
 
         unsafe {
             let comp = match au::AudioComponentFindNext(ptr::null_mut(), &desc as *const _) {
-                x if x.is_null() => return Err(CoreaudioDriverError::AudioComponentNotFound),
+                x if x.is_null() => return Err(CoreAudioDriverError::AudioComponentNotFound),
                 x => x
             };
 
             let mut instance: au::AudioComponentInstance = mem::uninitialized();
             check_os_error!(
                 au::AudioComponentInstanceNew(comp, &mut instance as *mut _),
-                CoreaudioDriverError::AudioComponentInstanceCreationFailed);
+                CoreAudioDriverError::AudioComponentInstanceCreationFailed);
 
             check_os_error!(
                 au::AudioUnitInitialize(instance),
-                CoreaudioDriverError::AudioComponentInstanceInitializationFailed);
+                CoreAudioDriverError::AudioComponentInstanceInitializationFailed);
 
             let sample_rate = 44100;
             let mut stream_desc = au::AudioStreamBasicDescription {
@@ -80,7 +80,7 @@ impl CoreaudioDriver {
                     0,
                     &mut stream_desc as *mut _ as *mut libc::c_void,
                     mem::size_of::<au::AudioStreamBasicDescription>() as u32),
-                CoreaudioDriverError::AudioUnitSetPropertyFailed);
+                CoreAudioDriverError::AudioUnitSetPropertyFailed);
 
             let callback_ptr: *mut libc::c_void = mem::transmute(Box::new(callback));
             let render_callback = au::AURenderCallbackStruct {
@@ -95,13 +95,13 @@ impl CoreaudioDriver {
                     0,
                     &render_callback as *const _ as *const libc::c_void,
                     mem::size_of::<au::AURenderCallbackStruct>() as u32),
-                CoreaudioDriverError::AudioUnitSetRenderCallbackFailed);
+                CoreAudioDriverError::AudioUnitSetRenderCallbackFailed);
 
             check_os_error!(
                 au::AudioOutputUnitStart(instance),
-                CoreaudioDriverError::AudioOutputUnitStartFailed);
+                CoreAudioDriverError::AudioOutputUnitStartFailed);
 
-            Ok(CoreaudioDriver {
+            Ok(CoreAudioDriver {
                 instance: instance,
                 callback: callback_ptr,
                 is_enabled: true
@@ -110,7 +110,7 @@ impl CoreaudioDriver {
     }
 }
 
-impl Drop for CoreaudioDriver {
+impl Drop for CoreAudioDriver {
     fn drop(&mut self) {
         unsafe {
             match au::AudioOutputUnitStop(self.instance) {
@@ -128,7 +128,7 @@ impl Drop for CoreaudioDriver {
     }
 }
 
-impl AudioDriver for CoreaudioDriver {
+impl AudioDriver for CoreAudioDriver {
     fn set_render_callback(&mut self, callback: Box<RenderCallback>) {
         unsafe {
             let callback_ptr: *mut libc::c_void = mem::transmute(Box::new(callback));

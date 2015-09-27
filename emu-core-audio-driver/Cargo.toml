@@ -1,5 +1,5 @@
 [package]
-name = "emu-coreaudio-driver"
+name = "emu-core-audio-driver"
 version = "0.1.0"
 authors = ["ferris <jake@fusetools.com>"]
 
