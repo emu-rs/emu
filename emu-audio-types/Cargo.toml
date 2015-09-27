@@ -1,0 +1,4 @@
+[package]
+name = "emu-audio-types"
+version = "0.1.0"
+authors = ["ferris <jake@fusetools.com>"]
