@@ -1,5 +1,5 @@
 [package]
-name = "coreaudio_driver"
+name = "coreaudio-driver"
 version = "0.1.0"
 authors = ["ferris <jake@fusetools.com>"]
 
