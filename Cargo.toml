@@ -2,6 +2,10 @@
 name = "coreaudio-driver"
 version = "0.1.0"
 authors = ["ferris <jake@fusetools.com>"]
+homepage = "https://github.com/yupferris/coreaudio-driver"
+repository = "https://github.com/yupferris/coreaudio-driver.git"
+readme = "README.md"
+license = "BSD-2-Clause"
 
 [dependencies]
 coreaudio-sys = "*"
