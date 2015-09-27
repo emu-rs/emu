@@ -1,8 +1,7 @@
-mod audio_driver;
-mod coreaudio_audio_driver;
+extern crate coreaudio_driver;
 
-use audio_driver::{AudioDriver, RenderCallback};
-use coreaudio_audio_driver::CoreaudioAudioDriver;
+use coreaudio_driver::audio_driver::{AudioDriver, RenderCallback};
+use coreaudio_driver::coreaudio_audio_driver::CoreaudioAudioDriver;
 
 use std::f64::consts::PI;
 
