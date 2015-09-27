@@ -22,6 +22,7 @@ pub enum CoreaudioAudioDriverError {
 
 pub struct CoreaudioAudioDriver {
     instance: au::AudioComponentInstance,
+    callback: *mut libc::c_void,
     sample_rate: i32
 }
 
@@ -34,7 +35,7 @@ macro_rules! check_os_error {
 }
 
 impl CoreaudioAudioDriver {
-    pub fn new(some_func: Box<RenderCallback>) -> Result<CoreaudioAudioDriver, CoreaudioAudioDriverError> {
+    pub fn new(callback: Box<RenderCallback>) -> Result<CoreaudioAudioDriver, CoreaudioAudioDriverError> {
         let desc = au::AudioComponentDescription {
             componentType: COMPONENT_TYPE_OUTPUT,
             componentSubType: COMPONENT_SUB_TYPE_DEFAULT_OUTPUT,
@@ -80,14 +81,10 @@ impl CoreaudioAudioDriver {
                     mem::size_of::<au::AudioStreamBasicDescription>() as u32),
                 CoreaudioAudioDriverError::AudioUnitSetPropertyFailed);
 
-            // TODO: Contact author of coreaudio-rs about why certain types are used here.
-            // Quite frankly it's very confusing and I have worries about memleaks when using
-            // callbacks like this.
-            let callback = Box::new(some_func);
-
+            let callback_ptr: *mut libc::c_void = mem::transmute(Box::new(callback));
             let render_callback = au::AURenderCallbackStruct {
                 inputProc: Some(render_proc),
-                inputProcRefCon: mem::transmute(callback)
+                inputProcRefCon: callback_ptr
             };
 
             check_os_error!(
@@ -106,6 +103,7 @@ impl CoreaudioAudioDriver {
 
             Ok(CoreaudioAudioDriver {
                 instance: instance,
+                callback: callback_ptr,
                 sample_rate: sample_rate
             })
         }
@@ -119,13 +117,13 @@ impl Drop for CoreaudioAudioDriver {
                 err if err != 0 => panic!("Failed to stop audio output unit (error code {})", err),
                 _ => {}
             }
-            //println!("Audio unit stopped successfully");
 
             match au::AudioComponentInstanceDispose(self.instance) {
                 err if err != 0 => panic!("Failed to dispose audio component instance (error code {})", err),
                 _ => {}
             }
-            //println!("Audio component instance disposed successfully");
+
+            let _: Box<Box<RenderCallback>> = mem::transmute(self.callback);
         }
     }
 }
