@@ -1,155 +1,60 @@
 extern crate emu_audio_types;
-extern crate coreaudio_sys as bindings;
-extern crate libc;
+extern crate coreaudio_rs;
 
-use std::ptr;
-use std::mem;
-use std::slice;
 use self::emu_audio_types::audio_driver::{AudioDriver, RenderCallback};
-use self::bindings::audio_unit as au;
-
-const COMPONENT_TYPE_OUTPUT: libc::c_uint = 0x61756f75;
-const COMPONENT_SUB_TYPE_DEFAULT_OUTPUT: libc::c_uint = 0x64656620;
-
-#[derive(Debug)]
-pub enum CoreAudioDriverError {
-    AudioComponentNotFound,
-    AudioComponentInstanceCreationFailed,
-    AudioComponentInstanceInitializationFailed,
-    AudioUnitSetPropertyFailed,
-    AudioUnitSetRenderCallbackFailed,
-    AudioOutputUnitStartFailed
-}
+use self::coreaudio_rs::audio_unit;
 
 pub struct CoreAudioDriver {
-    instance: au::AudioComponentInstance,
-    callback: *mut libc::c_void,
-    is_enabled: bool
-}
-
-macro_rules! check_os_error {
-    ($expr:expr,$err:expr) => ({
-        if $expr != 0 {
-            return Err($err);
-        }
-    })
+    audio_unit: audio_unit::AudioUnit,
+    is_enabled: bool // TODO: Remove
 }
 
 impl CoreAudioDriver {
-    pub fn new(callback: Box<RenderCallback>) -> Result<CoreAudioDriver, CoreAudioDriverError> {
-        let desc = au::AudioComponentDescription {
-            componentType: COMPONENT_TYPE_OUTPUT,
-            componentSubType: COMPONENT_SUB_TYPE_DEFAULT_OUTPUT,
-            componentManufacturer: au::kAudioUnitManufacturer_Apple,
-            componentFlags: 0,
-            componentFlagsMask: 0
+    pub fn new() -> CoreAudioDriver {
+        let audio_unit = audio_unit::AudioUnit::new(audio_unit::Type::Output, audio_unit::SubType::DefaultOutput).unwrap();
+
+        // TODO
+        /*let sample_rate = 44100;
+        let mut stream_desc = au::AudioStreamBasicDescription {
+            mSampleRate: sample_rate as f64,
+            mFormatID: au::kAudioFormatLinearPCM,
+            mFormatFlags: au::kAudioFormatFlagIsFloat as u32,
+            mFramesPerPacket: 1,
+            mChannelsPerFrame: 2,
+            mBitsPerChannel: 32,
+            mBytesPerPacket: 2 * 4,
+            mBytesPerFrame: 2 * 4,
+            mReserved: 0
         };
+        check_os_error!(
+            au::AudioUnitSetProperty(
+                instance,
+                au::kAudioUnitProperty_StreamFormat,
+                au::kAudioUnitScope_Input,
+                0,
+                &mut stream_desc as *mut _ as *mut libc::c_void,
+                mem::size_of::<au::AudioStreamBasicDescription>() as u32),
+                CoreAudioDriverError::AudioUnitSetPropertyFailed);*/
 
-        unsafe {
-            let comp = match au::AudioComponentFindNext(ptr::null_mut(), &desc as *const _) {
-                x if x.is_null() => return Err(CoreAudioDriverError::AudioComponentNotFound),
-                x => x
-            };
+        audio_unit.start().ok();
 
-            let mut instance: au::AudioComponentInstance = mem::uninitialized();
-            check_os_error!(
-                au::AudioComponentInstanceNew(comp, &mut instance as *mut _),
-                CoreAudioDriverError::AudioComponentInstanceCreationFailed);
-
-            check_os_error!(
-                au::AudioUnitInitialize(instance),
-                CoreAudioDriverError::AudioComponentInstanceInitializationFailed);
-
-            let sample_rate = 44100;
-            let mut stream_desc = au::AudioStreamBasicDescription {
-                mSampleRate: sample_rate as f64,
-                mFormatID: au::kAudioFormatLinearPCM,
-                mFormatFlags: au::kAudioFormatFlagIsFloat as u32,
-                mFramesPerPacket: 1,
-                mChannelsPerFrame: 2,
-                mBitsPerChannel: 32,
-                mBytesPerPacket: 2 * 4,
-                mBytesPerFrame: 2 * 4,
-                mReserved: 0
-            };
-            check_os_error!(
-                au::AudioUnitSetProperty(
-                    instance,
-                    au::kAudioUnitProperty_StreamFormat,
-                    au::kAudioUnitScope_Input,
-                    0,
-                    &mut stream_desc as *mut _ as *mut libc::c_void,
-                    mem::size_of::<au::AudioStreamBasicDescription>() as u32),
-                CoreAudioDriverError::AudioUnitSetPropertyFailed);
-
-            let callback_ptr: *mut libc::c_void = mem::transmute(Box::new(callback));
-            let render_callback = au::AURenderCallbackStruct {
-                inputProc: Some(render_proc),
-                inputProcRefCon: callback_ptr
-            };
-            check_os_error!(
-                au::AudioUnitSetProperty(
-                    instance,
-                    au::kAudioUnitProperty_SetRenderCallback,
-                    au::kAudioUnitScope_Input,
-                    0,
-                    &render_callback as *const _ as *const libc::c_void,
-                    mem::size_of::<au::AURenderCallbackStruct>() as u32),
-                CoreAudioDriverError::AudioUnitSetRenderCallbackFailed);
-
-            check_os_error!(
-                au::AudioOutputUnitStart(instance),
-                CoreAudioDriverError::AudioOutputUnitStartFailed);
-
-            Ok(CoreAudioDriver {
-                instance: instance,
-                callback: callback_ptr,
-                is_enabled: true
-            })
-        }
-    }
-}
-
-impl Drop for CoreAudioDriver {
-    fn drop(&mut self) {
-        unsafe {
-            match au::AudioOutputUnitStop(self.instance) {
-                err if err != 0 => panic!("Failed to stop audio output unit (error code {})", err),
-                _ => {}
-            }
-
-            match au::AudioComponentInstanceDispose(self.instance) {
-                err if err != 0 => panic!("Failed to dispose audio component instance (error code {})", err),
-                _ => {}
-            }
-
-            let _: Box<Box<RenderCallback>> = mem::transmute(self.callback);
+        CoreAudioDriver {
+            audio_unit: audio_unit,
+            is_enabled: true
         }
     }
 }
 
 impl AudioDriver for CoreAudioDriver {
-    fn set_render_callback(&mut self, callback: Box<RenderCallback>) {
-        unsafe {
-            let callback_ptr: *mut libc::c_void = mem::transmute(Box::new(callback));
-            let render_callback = au::AURenderCallbackStruct {
-                inputProc: Some(render_proc),
-                inputProcRefCon: callback_ptr
-            };
-            if au::AudioUnitSetProperty(
-                self.instance,
-                au::kAudioUnitProperty_SetRenderCallback,
-                au::kAudioUnitScope_Input,
-                0,
-                &render_callback as *const _ as *const libc::c_void,
-                mem::size_of::<au::AURenderCallbackStruct>() as u32) != 0 {
-                // TODO: Not sure if I like panicking here
-                panic!("Failed to set render callback");
-            }
-
-            let _: Box<Box<RenderCallback>> = mem::transmute(self.callback);
-            self.callback = callback_ptr;
-        }
+    fn set_render_callback(&mut self, callback: Option<Box<RenderCallback>>) {
+        self.audio_unit.render_callback(match callback {
+            Some(mut callback) => Some(Box::new(move |buffer, num_frames| {
+                // TODO: lol :D
+                callback(buffer[0], num_frames / 2);
+                Ok(())
+            })),
+            _ => None
+        }).ok();
     }
 
     fn set_is_enabled(&mut self, is_enabled: bool) {
@@ -157,20 +62,10 @@ impl AudioDriver for CoreAudioDriver {
             return;
         }
 
-        unsafe {
-            if is_enabled {
-                match au::AudioOutputUnitStart(self.instance) {
-                    // TODO: Not sure I like panicking here
-                    err if err != 0 => panic!("Failed to stop audio output unit (error code {})", err),
-                    _ => {}
-                }
-            } else {
-                match au::AudioOutputUnitStop(self.instance) {
-                    // TODO: Not sure I like panicking here
-                    err if err != 0 => panic!("Failed to stop audio output unit (error code {})", err),
-                    _ => {}
-                }
-            }
+        if is_enabled {
+            self.audio_unit.start().ok();
+        } else {
+            self.audio_unit.stop().ok();
         }
 
         self.is_enabled = is_enabled;
@@ -181,7 +76,8 @@ impl AudioDriver for CoreAudioDriver {
     }
 
     fn set_sample_rate(&mut self, sample_rate: i32) {
-        let sample_rate_float = sample_rate as f64;
+        // TODO
+        /*let sample_rate_float = sample_rate as f64;
         unsafe {
             if au::AudioUnitSetProperty(
                 self.instance,
@@ -193,11 +89,12 @@ impl AudioDriver for CoreAudioDriver {
                 // TODO: Not sure I like panicking here
                 panic!("Failed to set sample rate");
             }
-        }
+        }*/
     }
 
     fn sample_rate(&self) -> i32 {
-        unsafe {
+        // TODO
+        /*unsafe {
             let mut sample_rate_float: f64 = 0.0;
             let mut size: u32 = mem::size_of::<f64>() as u32;
             if au::AudioUnitGetProperty(
@@ -211,11 +108,13 @@ impl AudioDriver for CoreAudioDriver {
                 panic!("Failed to get sample rate");
             }
             sample_rate_float as i32
-        }
+        }*/
+        0
     }
 }
 
-extern "C" fn render_proc(
+// TODO
+/*extern "C" fn render_proc(
     in_ref_con: *mut libc::c_void,
     _: *mut au::AudioUnitRenderActionFlags,
     _: *const au::AudioTimeStamp,
@@ -231,4 +130,4 @@ extern "C" fn render_proc(
     }
 
     0
-}
+}*/

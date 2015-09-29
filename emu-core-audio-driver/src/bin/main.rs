@@ -39,10 +39,10 @@ fn main() {
             }
         });
 
-        match CoreAudioDriver::new(callback) {
-            Ok(x) => x,
-            Err(e) => panic!("{:?}", e)
-        }
+        // TODO: Ugly
+        let mut ret = CoreAudioDriver::new();
+        ret.set_render_callback(Some(callback));
+        ret
     };
 
     println!("All systems are go.");
@@ -64,7 +64,7 @@ fn main() {
             }
         });
 
-        driver.set_render_callback(callback);
+        driver.set_render_callback(Some(callback));
     }
 
     println!("Callback swapped");

@@ -1,7 +1,7 @@
 pub type RenderCallback = FnMut(&mut[f32], usize);
 
 pub trait AudioDriver {
-    fn set_render_callback(&mut self, callback: Box<RenderCallback>);
+    fn set_render_callback(&mut self, callback: Option<Box<RenderCallback>>);
 
     fn set_is_enabled(&mut self, is_enabled: bool);
     fn is_enabled(&self) -> bool;
