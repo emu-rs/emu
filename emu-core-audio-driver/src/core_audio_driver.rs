@@ -38,6 +38,8 @@ impl AudioDriver for CoreAudioDriver {
     fn set_render_callback(&mut self, callback: Option<Box<RenderCallback>>) {
         self.audio_unit.render_callback(match callback {
             Some(mut callback) => Some(Box::new(move |buffers, num_frames| {
+                // TODO: This is temporary, as I believe I've uncovered a bug in coreaudio-rs regarding the size of the buffer
+                // passed to the rendering callback.
                 let buffer = unsafe {
                     let slice_ptr = &mut buffers[0][0] as *mut f32;
                     slice::from_raw_parts_mut(slice_ptr, num_frames * 2)
