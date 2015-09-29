@@ -76,40 +76,11 @@ impl AudioDriver for CoreAudioDriver {
     }
 
     fn set_sample_rate(&mut self, sample_rate: i32) {
-        // TODO
-        /*let sample_rate_float = sample_rate as f64;
-        unsafe {
-            if au::AudioUnitSetProperty(
-                self.instance,
-                au::kAudioUnitProperty_SampleRate,
-                au::kAudioUnitScope_Input,
-                0,
-                &sample_rate_float as *const _ as *const libc::c_void,
-                mem::size_of::<f64>() as u32) != 0 {
-                // TODO: Not sure I like panicking here
-                panic!("Failed to set sample rate");
-            }
-        }*/
+        self.audio_unit.set_sample_rate(sample_rate as f64).ok();
     }
 
     fn sample_rate(&self) -> i32 {
-        // TODO
-        /*unsafe {
-            let mut sample_rate_float: f64 = 0.0;
-            let mut size: u32 = mem::size_of::<f64>() as u32;
-            if au::AudioUnitGetProperty(
-                self.instance,
-                au::kAudioUnitProperty_SampleRate,
-                au::kAudioUnitScope_Input,
-                0,
-                &mut sample_rate_float as *mut _ as *mut libc::c_void,
-                &mut size as *mut _) != 0 {
-                // TODO: Not sure I like panicking here
-                panic!("Failed to get sample rate");
-            }
-            sample_rate_float as i32
-        }*/
-        0
+        self.audio_unit.sample_rate().unwrap() as i32
     }
 }
 
