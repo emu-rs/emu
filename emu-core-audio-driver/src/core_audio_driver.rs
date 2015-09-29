@@ -1,40 +1,29 @@
 extern crate emu_audio_types;
 extern crate coreaudio_rs;
 
+use std::slice;
 use self::emu_audio_types::audio_driver::{AudioDriver, RenderCallback};
 use self::coreaudio_rs::audio_unit;
+use self::coreaudio_rs::audio_unit::{stream_format, audio_format};
 
 pub struct CoreAudioDriver {
     audio_unit: audio_unit::AudioUnit,
-    is_enabled: bool // TODO: Remove
+    is_enabled: bool // TODO: Remove if we can query this state from the AudioUnit instead
 }
 
 impl CoreAudioDriver {
     pub fn new() -> CoreAudioDriver {
         let audio_unit = audio_unit::AudioUnit::new(audio_unit::Type::Output, audio_unit::SubType::DefaultOutput).unwrap();
 
-        // TODO
-        /*let sample_rate = 44100;
-        let mut stream_desc = au::AudioStreamBasicDescription {
-            mSampleRate: sample_rate as f64,
-            mFormatID: au::kAudioFormatLinearPCM,
-            mFormatFlags: au::kAudioFormatFlagIsFloat as u32,
-            mFramesPerPacket: 1,
-            mChannelsPerFrame: 2,
-            mBitsPerChannel: 32,
-            mBytesPerPacket: 2 * 4,
-            mBytesPerFrame: 2 * 4,
-            mReserved: 0
-        };
-        check_os_error!(
-            au::AudioUnitSetProperty(
-                instance,
-                au::kAudioUnitProperty_StreamFormat,
-                au::kAudioUnitScope_Input,
-                0,
-                &mut stream_desc as *mut _ as *mut libc::c_void,
-                mem::size_of::<au::AudioStreamBasicDescription>() as u32),
-                CoreAudioDriverError::AudioUnitSetPropertyFailed);*/
+        audio_unit.set_stream_format(stream_format::StreamFormat {
+            sample_rate: 44100.0,
+            audio_format: audio_format::AudioFormat::LinearPCM(Some(audio_format::LinearPCMFlag::IsFloat)),
+            bytes_per_packet: 2 * 4,
+            frames_per_packet: 1,
+            bytes_per_frame: 2 * 4,
+            channels_per_frame: 2,
+            bits_per_channel: 32
+        }).ok();
 
         audio_unit.start().ok();
 
@@ -48,9 +37,12 @@ impl CoreAudioDriver {
 impl AudioDriver for CoreAudioDriver {
     fn set_render_callback(&mut self, callback: Option<Box<RenderCallback>>) {
         self.audio_unit.render_callback(match callback {
-            Some(mut callback) => Some(Box::new(move |buffer, num_frames| {
-                // TODO: lol :D
-                callback(buffer[0], num_frames / 2);
+            Some(mut callback) => Some(Box::new(move |buffers, num_frames| {
+                let buffer = unsafe {
+                    let slice_ptr = &mut buffers[0][0] as *mut f32;
+                    slice::from_raw_parts_mut(slice_ptr, num_frames * 2)
+                };
+                callback(buffer, num_frames);
                 Ok(())
             })),
             _ => None
@@ -83,22 +75,3 @@ impl AudioDriver for CoreAudioDriver {
         self.audio_unit.sample_rate().unwrap() as i32
     }
 }
-
-// TODO
-/*extern "C" fn render_proc(
-    in_ref_con: *mut libc::c_void,
-    _: *mut au::AudioUnitRenderActionFlags,
-    _: *const au::AudioTimeStamp,
-    _: au::UInt32,
-    in_number_frames: au::UInt32,
-    io_data: *mut au::AudioBufferList) -> au::OSStatus {
-    let callback: *mut Box<RenderCallback> = in_ref_con as *mut _;
-    unsafe {
-        let slice_ptr = (*io_data).mBuffers[0].mData as *mut libc::c_float;
-        let buffer = slice::from_raw_parts_mut(slice_ptr, (in_number_frames * 2) as usize);
-
-        (*callback)(buffer, in_number_frames as usize);
-    }
-
-    0
-}*/
