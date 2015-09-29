@@ -1,3 +1,5 @@
+// TODO: Consider adding error type as well so drivers can report errors properly instead of just panicking
+
 pub type RenderCallback = FnMut(&mut[f32], usize);
 
 pub trait AudioDriver {
