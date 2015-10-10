@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/yupferris/emu.svg?branch=travis)](https://travis-ci.org/yupferris/emu)
+
 # emu
 Because bad code don't fly!
 

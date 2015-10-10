@@ -1,0 +1,24 @@
+language: rust
+rust:
+    - stable
+    - beta
+    - nightly
+matrix:
+    allow_failures:
+        - rust: beta
+        - rust: nightly
+notifications:
+    email:
+        - jake@fusetools.com
+os:
+    - osx # TODO: Should actually run on all OS' supported eventually (once conditional compilation etc gates the right features)
+before_script:
+    - rustc --version
+    - cargo --version
+script:
+    - cd emu-audio-types
+    - cargo build --verbose
+    - cargo test --verbose
+    - cd ../emu-core-audio-driver
+    - cargo build --verbose
+    - cargo test --verbose
