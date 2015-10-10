@@ -1,0 +1,18 @@
+language: rust
+rust:
+    - stable
+    - beta
+    - nightly
+notifications:
+    email:
+        - jake@fusetools.com
+before_script:
+    - rustc --version
+    - cargo --version
+script:
+    - cd emu-audio-types
+    - cargo build --verbose
+    - cargo test --verbose
+    - cd ../emu-core-audio-driver
+    - cargo build --verbose
+    - cargo test --verbose
