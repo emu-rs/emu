@@ -1,7 +1,7 @@
-[![Build Status](https://travis-ci.org/yupferris/emu.svg?branch=travis)](https://travis-ci.org/yupferris/emu)
-
 # emu
 Because bad code don't fly!
+
+[![Build Status](https://travis-ci.org/yupferris/emu.svg?branch=travis)](https://travis-ci.org/yupferris/emu)
 
 ## what
 emu is set of libraries full of infrastruture code for writing emulators in Rust. At the moment it's very much in its
