@@ -6,6 +6,8 @@ rust:
 notifications:
     email:
         - jake@fusetools.com
+os:
+    - osx # TODO: Should actually run on all OS' supported eventually (once conditional compilation etc gates the right features)
 before_script:
     - rustc --version
     - cargo --version
