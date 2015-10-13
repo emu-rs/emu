@@ -1,7 +1,5 @@
-# emu
+# emu [![Build Status](https://travis-ci.org/emu-rs/emu.svg?branch=master)](https://travis-ci.org/emu-rs/emu) [![Crates.io](https://img.shields.io/crates/v/emu.svg)](https://crates.io/crates/emu) [![Crates.io](https://img.shields.io/crates/l/emu.svg)]([![Crates.io](https://img.shields.io/crates/v/emu.svg)](https://crates.io/crates/emu))
 Because bad code don't fly!
-
-[![Build Status](https://travis-ci.org/emu-rs/emu.svg?branch=master)](https://travis-ci.org/emu-rs/emu) [![Crates.io](https://img.shields.io/crates/v/emu.svg)](https://crates.io/crates/emu) [![Crates.io](https://img.shields.io/crates/l/emu.svg)]([![Crates.io](https://img.shields.io/crates/v/emu.svg)](https://crates.io/crates/emu))
 
 ## what
 emu is set of libraries full of infrastruture code for writing emulators in Rust. At the moment it's very much in its
