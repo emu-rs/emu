@@ -1,4 +1,4 @@
-# emu [![Build Status](https://travis-ci.org/emu-rs/emu.svg?branch=master)](https://travis-ci.org/emu-rs/emu) [![Crates.io](https://img.shields.io/crates/v/emu.svg)](https://crates.io/crates/emu) [![Crates.io](https://img.shields.io/crates/l/emu.svg)](https://github.com/emu-rs/emu/blob/master/LICENSE)
+# emu [![Build Status](https://travis-ci.org/emu-rs/emu.svg)](https://travis-ci.org/emu-rs/emu) [![Crates.io](https://img.shields.io/crates/v/emu.svg)](https://crates.io/crates/emu) [![Crates.io](https://img.shields.io/crates/l/emu.svg)](https://github.com/emu-rs/emu/blob/master/LICENSE)
 Because bad code don't fly!
 
 ## what
