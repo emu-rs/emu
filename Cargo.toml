@@ -2,6 +2,10 @@
 name = "emu"
 version = "0.1.0"
 authors = ["ferris <jake@fusetools.com>"]
+description = "A set of libraries for writing emulators in Rust."
+homepage = "https://github.com/emu-rs/emu"
+repository = "https://github.com/emu-rs/emu"
+license = "BSD-2-Clause"
 
 [dependencies]
 emu-audio-types = "0.1.0"
