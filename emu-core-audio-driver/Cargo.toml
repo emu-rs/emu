@@ -6,5 +6,5 @@ authors = ["ferris <jake@fusetools.com>"]
 [dependencies.emu-audio-types]
 path = "../emu-audio-types"
 
-[dependencies.coreaudio-rs]
-path = "../../coreaudio-rs"
+[dependencies]
+coreaudio-rs = "0.2.0"
