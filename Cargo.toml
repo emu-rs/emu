@@ -1,0 +1,8 @@
+[package]
+name = "emu"
+version = "0.1.0"
+authors = ["ferris <jake@fusetools.com>"]
+
+[dependencies]
+emu-audio-types = "0.1.0"
+emu-core-audio-driver = "0.1.0"
