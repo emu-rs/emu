@@ -1,6 +1,6 @@
 [package]
 name = "emu"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["ferris <jake@fusetools.com>"]
 description = "A set of libraries for writing emulators in Rust."
 homepage = "https://github.com/emu-rs/emu"
