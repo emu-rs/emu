@@ -8,5 +8,4 @@ repository = "https://github.com/emu-rs/emu"
 license = "BSD-2-Clause"
 
 [dependencies]
-emu-audio-types = "0.1.0"
-emu-core-audio-driver = "0.1.0"
+emu-audio = "0.1.0"
