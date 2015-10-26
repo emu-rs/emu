@@ -5,7 +5,7 @@ Because bad code don't fly!
 emu is set of libraries full of infrastruture code for writing emulators in Rust. At the moment it's very much in its
 infancy and highly incomplete. The first goal is to port/rewrite enough existing infrastructure from my older
 [Fel library](https://github.com/yupferris/FerrisLibs/tree/master/Fel) to support porting various emulators I've
-written to Rust (like [this one](https://github.com/yupferris/SamuraiPizzaCats) and
+written to Rust (like [this one](https://github.com/emu-rs/snes-apu) and
 [this one](https://github.com/yupferris/Vip8)), and from there it's all about exploration and writing more
 emulators :) . There will also be an effort throughout the project to separate as much of the code as possible
 into smaller crates that can be used in other projects (for example, I foresee the audio abstractions could be
