@@ -9,4 +9,4 @@ keywords = ["emu", "emulator"]
 license = "BSD-2-Clause"
 
 [dependencies]
-emu-audio = "0.1.0"
+emu-audio = "0.1.1"
